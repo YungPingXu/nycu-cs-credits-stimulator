@@ -18,7 +18,8 @@ def calculate():
 			result = stimulate.calculate(content, student_class)
 		else:
 			redirect(url_for("index"))
-		result = result.split("\n")
+		#result = result.split("\n")
+		print(result)
 		return render_template('result.html', result=result)
 	return redirect(url_for("index"))
 

@@ -3,6 +3,39 @@
 <head>
 	<meta charset="utf-8">
 	<title>交大資工系畢業學分模擬系統</title>
+	<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+	<script>
+		function move(object, percent) {
+			var i = 0;
+			if (i == 0) {
+				i = 1;
+				var elem = document.getElementById(object);
+				var width = 1;
+				var id = setInterval(frame, 20);
+				function frame() {
+					if (width >= percent) {
+						clearInterval(id);
+						i = 0;
+					} else {
+						width++;
+						elem.style.width = width + "%";
+					}
+				}
+			}
+		}
+		function move_all() {
+			move('bar1', {{result.required.finished_rate}});
+			move('bar2', {{result.science.finished_rate}});
+			{% if result.field_required %}
+			move('bar3', {{result.field_required.finished_rate}});
+			{% endif %}
+			move('bar4', {{result.general_required.finished_rate}});
+			move('bar5', {{result.PE.finished_rate}});
+			move('bar6', {{result.english.finished_rate}});
+			move('bar7', {{result.selective.finished_rate}});
+			move('bar8', {{result.free.finished_rate}});
+		}
+	</script>
 	<style>
 		*{
 			font-family: "微軟正黑體";
@@ -28,14 +61,10 @@
 		}
 		#container {
 			margin: 0 auto;
-			font-size: 20px;
+			font-size: 18px;
 			margin-top: 20px;
-			margin-bottom: 100px;
-			width: 600px;
-		}
-		#result {
-			font-size: 16px;
-			margin: 10px;
+			margin-bottom: 150px;
+			width: 850px;
 		}
 		footer {
 			background-color: #444444;
@@ -49,21 +78,291 @@
 			width: 100%; /* 設定footer置底 */
 			margin-top: 130px;
 		}
+		.course-grid {
+			background-color: #cfe2f4;
+			padding: 10px;
+			border-radius:10px;
+			margin-top: 5px;
+			margin-bottom: 5px;
+		}
+		.course-grid-left {
+			display: inline-block;
+			width: 90%;
+		}
+		.course-grid-right {
+			display: inline-block;
+			vertical-align: top;
+			width: 9%;
+		}
 	</style>
 </head>
 
-<body>
+<body onload="move_all();">
 	<header>
 		交大 資工系畢業學分模擬系統<br>
 	</header>
 	<section id="container">
 		<div id="result">
-			<div id="result">
-				{% for line in result %}
-    				{{line}}<br>
-				{% endfor %}
+			{{result.required.item}}：{{result.required.finished_credits}} / {{result.required.required_credits}} 學分 (總共還差 {{result.required.not_finished_credits}} 學分)<br>
+			<div class="w3-light-grey w3-round-xlarge" style="border: black solid 2px;">
+				<div class="w3-container w3-green w3-round-xlarge" id="bar1" style="width: 1%;">{{result.required.finished_rate}}%</div>
 			</div>
-			
+			已通過之課程：
+			{% for i in result.required.finished %}
+				<div class="course-grid">
+					<div class="course-grid-left">{{i.0}}</div>
+					<div class="course-grid-right">{{i.1}} 學分</div>
+					(已修完 {{i.2}} 個學期)
+				</div>
+			{% endfor %}
+			未通過之課程：
+			{% for i in result.required.not_finished %}
+				<div class="course-grid">
+					<div class="course-grid-left">{{i.0}}</div>
+					<div class="course-grid-right">{{i.1}} 學分</div>
+					(還差 {{i.2}} 個學期)
+				</div>
+			{% endfor %}
+			<hr/>
+			{{result.science.item}}：{{result.science.finished_credits}} / {{result.science.required_credits}} 學分 (總共還差 {{result.science.not_finished_credits}} 學分)<br>
+			<div class="w3-light-grey w3-round-xlarge" style="border: black solid 2px;">
+				<div class="w3-container w3-green w3-round-xlarge" id="bar2" style="width: 1%;">{{result.science.finished_rate}}%</div>
+			</div>
+			已通過之課程：
+			{% for k, v in result.science.result.items() %}
+				{% for i in v.finished_list %}
+				<div class="course-grid">
+					<div class="course-grid-left">{{i.0}}</div>
+					<div class="course-grid-right">{{i.1}} 學分</div>
+					(採計在 "{{k}}" 這組課程裡)
+				</div>
+				{% endfor %}
+			{% endfor %}
+			{% if result.science.total_passed %}
+				已全數通過 (以 "{{result.science.passed_category}}" 這組課程採計)
+			{% else %}
+				尚未通過之課程：<br>
+				{% for k, v in result.science.result.items() %}
+					{% for i in v.not_finished_list %}
+						<div class="course-grid">
+							<div class="course-grid-left">{{i.0}}</div>
+							<div class="course-grid-right">{{i.1}} 學分</div>
+							(採計在 "{{k}}" 這組課程裡)
+						</div>
+					{% endfor %}
+				{% endfor %}
+				{% for k, v in result.science.result.items() %}
+					若想選擇 "{{k}}" 這組課程來採計，則仍需再修以下課程<br>
+					{% for i in v.not_finished_list %}
+						<div class="course-grid">
+							<div class="course-grid-left">{{i.0}}</div>
+							<div class="course-grid-right">{{i.1}} 學分</div>
+							(採計在 "{{k}}" 這組課程裡)
+						</div>
+					{% endfor %}
+				{% endfor %}
+			{% endif %}
+			<hr/>
+				{% if result.field_required %}
+				{{result.field_required.item}}：{{result.field_required.finished_credits}} / {{result.field_required.required_credits}} 學分 (總共還差 {{result.field_required.not_finished_credits}} 學分)<br>
+				<div class="w3-light-grey w3-round-xlarge" style="border: black solid 2px;">
+					<div class="w3-container w3-green w3-round-xlarge" id="bar3" style="width: 1%;">{{result.field_required.finished_rate}}%</div>
+				</div>
+				已通過之課程：
+				{% for k, v in result.field_required.result.items() %}
+					{% for i in v.finished_list %}
+					<div class="course-grid">
+						<div class="course-grid-left">{{i.0}}</div>
+						<div class="course-grid-right">{{i.1}} 學分</div>
+						(採計在 "{{k}}" 這組課程裡)
+					</div>
+					{% endfor %}
+				{% endfor %}
+				{% if result.field_required.total_passed %}
+					已全數通過 (以 "{{result.field_required.passed_category}}" 這組課程採計)
+				{% else %}
+					尚未通過之課程：<br>
+					{% for k, v in result.field_required.result.items() %}
+						{% for i in v.not_finished_list %}
+							<div class="course-grid">
+								<div class="course-grid-left">{{i.0}}</div>
+								<div class="course-grid-right">{{i.1}} 學分</div>
+								(採計在 "{{k}}" 這組課程裡)
+							</div>
+						{% endfor %}
+					{% endfor %}
+					{% for k, v in result.field_required.result.items() %}
+						若想選擇 "{{k}}" 這組課程來採計，則仍需再修以下課程<br>
+						{% for i in v.not_finished_list %}
+							<div class="course-grid">
+								<div class="course-grid-left">{{i.0}}</div>
+								<div class="course-grid-right">{{i.1}} 學分</div>
+								(採計在 "{{k}}" 這組課程裡)
+							</div>
+						{% endfor %}
+					{% endfor %}
+				{% endif %}
+			{% endif %}
+			<hr/>
+			{{result.general_required.item}}：{{result.general_required.finished_credits}} / {{result.general_required.required_credits}} 學分 (總共還差 {{result.general_required.not_finished_credits}} 學分)<br>
+			<div class="w3-light-grey w3-round-xlarge" style="border: black solid 2px;">
+				<div class="w3-container w3-green w3-round-xlarge" id="bar4" style="width: 1%;">{{result.general_required.finished_rate}}%</div>
+			</div>
+			{% for k, v in result.general_required.result.items() %}
+				<br>{{k}}：{{v.0.finished_credits}} / {{v.0.required_credits}} 學分 (還差 {{v.0.not_finished_credits}} 學分)<br>
+				已通過之課程：<br>
+				{% if v.0.finished_credits > 0 %}
+					{% if v.1 %}
+						{% for course_type, info in v.1.items() %}
+							{{course_type}}：{{info.finished_semesters}} / {{info.required_semesters}} 門 (還差 {{info.not_finished_semesters}} 門)<br>
+							{% for i in info.finished_list %}
+								<div class="course-grid">
+									<div class="course-grid-left">{{i.0}}</div>
+									<div class="course-grid-right">{{i.1}} 學分</div>
+								</div>
+							{% endfor %}
+						{% endfor %}
+					{% else %}
+						{% for i in v.0.finished_list %}
+							<div class="course-grid">
+								<div class="course-grid-left">{{i.0}}</div>
+								<div class="course-grid-right">{{i.1}} 學分</div>
+							</div>
+						{% endfor %}
+					{% endif %}
+				{% endif %}
+				{{k}}
+				{% if v.0.not_finished_credits == 0 %}
+					已全數通過<br>
+				{% else %}
+					還差 {{v.0.not_finished_credits}} 學分<br>
+				{% endif %}
+			{% endfor %}
+			<hr/>
+			{{result.PE.item}}：{{result.PE.finished_semesters}} / {{result.PE.required_semesters}} 學期 (總共還差 {{result.PE.not_finished_semesters}} 學期)<br>
+			<div class="w3-light-grey w3-round-xlarge" style="border: black solid 2px;">
+				<div class="w3-container w3-green w3-round-xlarge" id="bar5" style="width: 1%;">{{result.PE.finished_rate}}%</div>
+			</div>
+			{% for k, v in result.PE.result.items() %}
+				<br>
+				{% if k == "basic" %}
+					大一體育必修：{{v.finished_credits}} / {{v.required_credits}} 學分 ({{v.finished_semesters}} / {{v.required_semesters}} 學期)<br>
+					還差 {{v.not_finished_credits}} 學分 ({{v.not_finished_semesters}} 學期)<br>
+					已通過之課程：<br>
+					{% for i in v.finished_list %}
+						<div class="course-grid">
+							<div class="course-grid-left">{{i.0}}</div>
+							<div class="course-grid-right">{{i.2}} 學分</div>
+							({% if i.1 == 0 %}上學期{% else %}下學期{% endif %})
+						</div>
+					{% endfor %}
+					{% if v.not_finished_semesters %}
+						未通過之課程：<br>
+						{% for i in v.not_finished_list %}
+							<div class="course-grid">
+								<div class="course-grid-left">{{i.0}}</div>
+								<div class="course-grid-right">{{i.2}} 學分</div>
+								({% if i.1 == 0 %}上學期{% else %}下學期{% endif %})
+							</div>
+						{% endfor %}
+					{% else %}
+						大一體育必修已全數通過<br>
+					{% endif %}
+				{% elif k == "remain" %}
+					其餘體育必修：{{v.finished_credits}} / {{v.required_credits}} 學分 ({{v.finished_semesters}} / {{v.required_semesters}} 學期)<br>
+					還差 {{v.not_finished_credits}} 學分 ({{v.not_finished_semesters}} 學期)<br>
+					已通過之課程：<br>
+					{% for i in v.finished_list %}
+						<div class="course-grid">
+							<div class="course-grid-left">{{i.0}}</div>
+							<div class="course-grid-right">{{i.2}} 學分</div>
+						</div>
+					{% endfor %}
+					{% if v.not_finished_semesters == 0 %}
+						其餘體育必修已全數通過<br>
+					{% endif %}
+				{% endif %}
+			{% endfor %}
+			<hr>
+			{{result.english.item}}：{{result.english.finished_credits}} / {{result.english.required_credits}} 學分 ({{result.english.finished_semesters}} / {{result.english.required_semesters}} 學期)<br>
+			(總共還差 {{result.english.not_finished_credits}} 學分 ({{result.english.not_finished_semesters}} 學期)<br>
+			<div class="w3-light-grey w3-round-xlarge" style="border: black solid 2px;">
+				<div class="w3-container w3-green w3-round-xlarge" id="bar6" style="width: 1%;">{{result.english.finished_rate}}%</div>
+			</div>
+			{% for k, v in result.english.result.items() %}
+				<br>
+				{% if k == "basic" %}
+					大一英文必修：{{v.finished_credits}} / {{v.required_credits}} 學分 ({{v.finished_semesters}} / {{v.required_semesters}} 學期)<br>
+					還差 {{v.not_finished_credits}} 學分 ({{v.not_finished_semesters}} 學期)<br>
+					已通過之課程：<br>
+					{% for i in v.finished_list %}
+						<div class="course-grid">
+							<div class="course-grid-left">{{i.0}}</div>
+							<div class="course-grid-right">{{i.2}} 學分</div>
+							({% if i.1 == 0 %}上學期{% else %}下學期{% endif %})
+						</div>
+					{% endfor %}
+					{% if v.not_finished_semesters %}
+						未通過之課程：<br>
+						{% for i in v.not_finished_list %}
+							<div class="course-grid">
+								<div class="course-grid-left">{{i.0}}</div>
+								<div class="course-grid-right">{{i.2}} 學分</div>
+								({% if i.1 == 0 %}上學期{% else %}下學期{% endif %})
+							</div>
+						{% endfor %}
+					{% else %}
+						大一英文必修已全數通過<br>
+					{% endif %}
+				{% elif k == "remain" %}
+					其餘外語必修：{{v.finished_credits}} / {{v.required_credits}} 學分 ({{v.finished_semesters}} / {{v.required_semesters}} 學期)<br>
+					還差 {{v.not_finished_credits}} 學分 ({{v.not_finished_semesters}} 學期)<br>
+					已通過之課程：<br>
+					{% for i in v.finished_list %}
+						<div class="course-grid">
+							<div class="course-grid-left">{{i.0}}</div>
+							<div class="course-grid-right">{{i.2}} 學分</div>
+						</div>
+					{% endfor %}
+					{% if v.not_finished_semesters == 0 %}
+						其餘外語必修已全數通過<br>
+					{% endif %}
+				{% endif %}
+			{% endfor %}
+			<hr>
+			專業選修：{{result.selective.finished_credits}} / {{result.selective.required_credits}} 學分<br>
+			(總共還差 {{result.selective.not_finished_credits}} 學分)<br>
+			<div class="w3-light-grey w3-round-xlarge" style="border: black solid 2px;">
+				<div class="w3-container w3-green w3-round-xlarge" id="bar7" style="width: 1%;">{{result.selective.finished_rate}}%</div>
+			</div>
+			{% for i in result.selective.finished %}
+				<div class="course-grid">
+					<div class="course-grid-left">{{i.0}}</div>
+					<div class="course-grid-right">{{i.1}} 學分</div>
+				</div>
+			{% endfor %}
+			{% if result.selective.passed %}
+				已符合專業選修30學分門檻<br>
+			{% else %}
+				仍須再修 {{result.selective.not_finished_credits}} 學分<br>
+			{% endif %}
+			<hr>
+			自由選修：{{result.free.finished_credits}} / {{result.free.required_credits}} 學分<br>
+			(總共還差 {{result.free.not_finished_credits}} 學分)<br>
+			<div class="w3-light-grey w3-round-xlarge" style="border: black solid 2px;">
+				<div class="w3-container w3-green w3-round-xlarge" id="bar8" style="width: 1%;">{{result.free.finished_rate}}%</div>
+			</div>
+			{% for i in result.free.finished %}
+				<div class="course-grid">
+					<div class="course-grid-left">{{i.0}}</div>
+					<div class="course-grid-right">{{i.1}} 學分</div>
+				</div>
+			{% endfor %}
+			{% if result.free.passed %}
+				已符合自由選修15學分門檻<br>
+			{% else %}
+				仍須再修 {{result.free.not_finished_credits}} 學分<br>
+			{% endif %}
 		</div>
 	</section>
 	<footer>

@@ -5,6 +5,9 @@ required_list = {
 	"course name2": [credits per semester, number of semesters],
 	....
 }"""
+from werkzeug.datastructures import _unicodify_header_value
+
+
 def required(course, required_credits, required_list, fset):
 	result = ""
 	finished_list = [] # every element is ["course name", credits per semester, the number of finished semesters]
@@ -40,7 +43,15 @@ def required(course, required_credits, required_list, fset):
 			result += i[0] + " : " + str(i[1]) + " 學分 (還差 " + str(i[2]) + " 個學期)\n"
 	else:
 		result += "\n已全數通過\n"
-	return result
+	renderlist = {
+		"item": "必修", "finished_credits": finished_credits,
+		"required_credits": required_credits,
+		"finished_rate": int(round(finished_credits / required_credits, 2) * 100),
+		"not_finished_credits": not_finished_credits,
+		"finished": finished_list,
+		"not_finished": not_finished_list
+	}
+	return renderlist
 
 """selective_required function
 required_list format:
@@ -121,7 +132,16 @@ def selective_required(course, required_credits, required_list, name, fset):
 			result += "\n若想選擇 \"" + k + "\" 這組課程來採計，則仍需再修以下課程：\n"
 			for i in v["not_finished_list"]:
 				result += i[0] + " : " + str(i[1]) + " 學分\n"
-	return result
+	renderlist = {
+		"item": name, "finished_credits": total_finished_credits,
+		"required_credits": required_credits,
+		"finished_rate": int(round(total_finished_credits / required_credits, 2) * 100),
+		"not_finished_credits": required_credits -  total_finished_credits,
+		"total_passed": total_passed,
+		"passed_category": passed_category,
+		"result": resultlist
+	}
+	return renderlist
 
 """special_required function
 required_list format:
@@ -228,7 +248,17 @@ def special_required(course, required_credits, required_semesters, required_list
 				result += i[0] + " : " + str(i[2]) + " 學分\n"
 			if v["not_finished_semesters"] == 0:
 				result += "其餘" + v["name"] + "必修已全數通過\n"
-	return result
+	renderlist = {
+		"item": name,
+		"finished_credits": finished_credits,
+		"required_credits": required_credits,
+		"finished_semesters": finished_semesters,
+		"required_semesters": required_semesters,
+		"finished_rate": int(round(finished_semesters / required_semesters, 2) * 100),
+		"not_finished_semesters": finished_semesters - finished_semesters,
+		"result": resultlist
+	}
+	return renderlist
 
 """general_required function
 required_list format:
@@ -309,10 +339,17 @@ def general_required(course, required_credits, required_list, fset):
 			result += "已全數通過\n"
 		else:
 			result += "還差 " + str(v[0]["not_finished_credits"]) + " 學分\n"
-	return result
+	renderlist = {
+		"item": "通識必修", "finished_credits": finished_credits,
+		"required_credits": required_credits,
+		"finished_rate": int(round(finished_credits / required_credits, 2) * 100),
+		"not_finished_credits": required_credits - finished_credits,
+		"result": resultlist
+	}
+	return renderlist
 
 def calculate(inputdata, student_class):
-	result = ""
+	result = {}
 	rawdata = inputdata
 	table = []
 	tmp = rawdata.replace("（", "(").replace("）", ")").split("\n")
@@ -355,7 +392,8 @@ def calculate(inputdata, student_class):
 			"微處理機系統實驗": [3, 1],
 			"編譯器設計概論": [3, 1],
 		}
-		result += required(course, 51, repeated_required_list, fset)
+		result["required"] = required(course, 51, repeated_required_list, fset)
+		#result += required(course, 51, repeated_required_list, fset)
 	elif student_class == "C": # 網多組
 		# 網路與多媒體工程組必修57學分:
 		# 必修42學分 + 領域專業課程兩組擇一必修9學分 + 自然科學三組擇一必修6學分
@@ -381,7 +419,8 @@ def calculate(inputdata, student_class):
 			"基礎程式設計": [0, 1],
 			"藝文賞析教育" : [0, 2], # 0學分 2學期
 		}
-		result += required(course, 42, repeated_required_list, fset)
+		result["required"] = required(course, 42, repeated_required_list, fset)
+		# result += required(course, 42, repeated_required_list, fset)
 	elif student_class == "D": # 資電組
 		# 資電工程組必修60學分:
 		# 必修54學分 + 自然科學三組擇一必修6學分
@@ -413,8 +452,9 @@ def calculate(inputdata, student_class):
 			"編譯器設計概論": [3, 1],
 			"數位電路實驗": [3, 1],
 		}
-		result += required(course, 54, repeated_required_list, fset)
-	result += "--------------------------------------------\n"
+		result["required"] = required(course, 54, repeated_required_list, fset)
+		#result += required(course, 54, repeated_required_list, fset)
+	#result += "--------------------------------------------\n"
 	science_list = { # 擇一
 		"物理": {
 			"物理(一)": 3,
@@ -429,9 +469,10 @@ def calculate(inputdata, student_class):
 			"化學(二)": 3,
 		},
 	}
-	result += selective_required(course, 6, science_list, "自然科學", fset)
+	result["science"] = selective_required(course, 6, science_list, "自然科學必修", fset)
+	#result += selective_required(course, 6, science_list, "自然科學", fset)
 	if student_class == "C":
-		result += "--------------------------------------------\n"
+		#result += "--------------------------------------------\n"
 		field_list = { # 擇一
 			"網路": {
 				"計算機網路概論": 3,
@@ -444,8 +485,9 @@ def calculate(inputdata, student_class):
 				"影像處理概論": 3,
 			}
 		}
-		result += selective_required(course, 9, field_list, "領域專業課程", fset)
-	result += "--------------------------------------------\n"
+		#result += selective_required(course, 9, field_list, "領域專業課程", fset)
+		result["field_required"] = selective_required(course, 9, field_list, "領域專業課程", fset)
+	#result += "--------------------------------------------\n"
 	# 通識
 	general = {
 		"校基本素養": [6, {}],
@@ -455,27 +497,30 @@ def calculate(inputdata, student_class):
 		}],
 		"跨院基本素養": [2, {}],
 	}
-	result += general_required(course, 18, general, fset)
-	result += "--------------------------------------------\n"
+	result["general_required"] = general_required(course, 18, general, fset)
+	#result += general_required(course, 18, general, fset)
+	#result += "--------------------------------------------\n"
 	PE = [ # 體育6學期
 		["大一體育", 0, 2, "體育", "體育必修"], # 0學分 2學期
 		["體育", 0, 4], # 向度: 體育必修 0學分 4學期
 	]
-	result += special_required(course, 0, 6, PE, "體育", fset)
-	result += "--------------------------------------------\n"
+	result["PE"] = special_required(course, 0, 6, PE, "體育", fset)
+	#result += special_required(course, 0, 6, PE, "體育", fset)
+	#result += "--------------------------------------------\n"
 	foreign = [ # 外語
 		["大一英文", 2, 2, "外語", "基礎"], # 2學分 2學期
 		["外語", 2, 2], # 向度: 進階 2學分 2學期
 	]
-	result += special_required(course, 8, 4, foreign, "外語", fset)
-	result += "--------------------------------------------\n"
+	result["english"] = special_required(course, 8, 4, foreign, "外語", fset)
+	#result += special_required(course, 8, 4, foreign, "外語", fset)
+	#result += "--------------------------------------------\n"
 	fset = set(fset)
 	# 專業選修30學分
 	selective_required_credits = 30
 	selective_finished = []
 	selective_finished_credits = 0
 	# 自由選修15學分
-	free_required = 15
+	free_required_credits = 15
 	free_finished = []
 	free_finished_credits = 0
 	for i in course:
@@ -493,9 +538,33 @@ def calculate(inputdata, student_class):
 					tmp.append(int(float(i[6])))
 					free_finished.append(tmp)
 					free_finished_credits += int(float(i[6]))
-	result += "專業選修: " + str(selective_finished_credits) + " / " + str(selective_required_credits) + "學分\n"
-	result += "已通過之課程:\n"
-	for i in selective_finished:
+	#result += "專業選修: " + str(selective_finished_credits) + " / " + str(selective_required_credits) + "學分\n"
+	#result += "已通過之課程:\n"
+	result["selective"] = {
+		"finished_credits": selective_finished_credits,
+		"not_finished_credits": selective_required_credits - selective_finished_credits,
+		"required_credits": selective_required_credits,
+		"finished_rate": int(round(selective_finished_credits / selective_required_credits, 2) * 100),
+		"finished": free_finished,
+		"passed": False
+	}
+	if selective_required_credits <= selective_finished_credits:
+		result["selective"]["passed"] = True
+		result["selective"]["not_finished_credits"] = 0
+		result["selective"]["finished_rate"] = 100
+	result["free"] = {
+		"finished_credits": free_finished_credits,
+		"not_finished_credits": free_required_credits - free_finished_credits,
+		"required_credits": free_required_credits,
+		"finished_rate": int(round(free_finished_credits / free_required_credits, 2) * 100),
+		"finished": free_finished,
+		"passed": False
+	}
+	if free_required_credits <= free_finished_credits:
+		result["free"]["passed"] = True
+		result["free"]["not_finished_credits"] = 0
+		result["free"]["finished_rate"] = 100
+	'''for i in selective_finished:
 		result += i[0] + " : " + str(i[1]) + " 學分\n"
 	if selective_required_credits - selective_finished_credits > 0:
 		result += "仍須再修 " + str(selective_required_credits - selective_finished_credits) + " 學分\n"
@@ -509,5 +578,5 @@ def calculate(inputdata, student_class):
 	if free_required - free_finished_credits > 0:
 		result += "仍須再修" + str(free_required - free_finished_credits) + " 學分\n"
 	else:
-		result += "已符合自由選修15學分門檻\n"
+		result += "已符合自由選修15學分門檻\n""'''
 	return result
