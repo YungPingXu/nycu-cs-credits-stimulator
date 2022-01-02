@@ -129,15 +129,29 @@
 				<div class="w3-container w3-green w3-round-xlarge" id="bar2" style="width: 1%;">{{result.science.finished_rate}}%</div>
 			</div>
 			已通過之課程：
-			{% for k, v in result.science.result.items() %}
-				{% for i in v.finished %}
-				<div class="course-grid">
-					<div class="course-grid-left">{{i.4}}</div>
-					<div class="course-grid-right">{{i.6}} 學分</div>
-					(採計在 "{{k}}" 這組課程裡)
-				</div>
+			{% if result.science.passed %}
+				{% for k, v in result.science.result.items() %}
+					{% if k == result.science.passed_category %}
+						{% for i in v.finished %}
+						<div class="course-grid">
+							<div class="course-grid-left">{{i.4}}</div>
+							<div class="course-grid-right">{{i.6}} 學分</div>
+							(採計在 "{{k}}" 這組課程裡)
+						</div>
+						{% endfor %}
+					{% endif %}
 				{% endfor %}
-			{% endfor %}
+			{% else %}
+				{% for k, v in result.science.result.items() %}
+					{% for i in v.finished %}
+					<div class="course-grid">
+						<div class="course-grid-left">{{i.4}}</div>
+						<div class="course-grid-right">{{i.6}} 學分</div>
+						(採計在 "{{k}}" 這組課程裡)
+					</div>
+					{% endfor %}
+				{% endfor %}
+			{% endif %}
 			{% if result.science.passed %}
 				已全數通過 (以 "{{result.science.passed_category}}" 這組課程採計)
 			{% else %}
@@ -169,15 +183,29 @@
 					<div class="w3-container w3-green w3-round-xlarge" id="bar3" style="width: 1%;">{{result.field_required.finished_rate}}%</div>
 				</div>
 				已通過之課程：
-				{% for k, v in result.field_required.result.items() %}
-					{% for i in v.finished %}
-					<div class="course-grid">
-						<div class="course-grid-left">{{i.4}}</div>
-						<div class="course-grid-right">{{i.6}} 學分</div>
-						(採計在 "{{k}}" 這組課程裡)
-					</div>
+				{% if result.field_required.passed %}
+					{% for k, v in result.field_required.result.items() %}
+						{% if  k == result.field_required.passed_category %}
+							{% for i in v.finished %}
+							<div class="course-grid">
+								<div class="course-grid-left">{{i.4}}</div>
+								<div class="course-grid-right">{{i.6}} 學分</div>
+								(採計在 "{{k}}" 這組課程裡)
+							</div>
+							{% endfor %}
+						{% endif %}
 					{% endfor %}
-				{% endfor %}
+				{% else %}
+					{% for k, v in result.field_required.result.items() %}
+						{% for i in v.finished %}
+						<div class="course-grid">
+							<div class="course-grid-left">{{i.4}}</div>
+							<div class="course-grid-right">{{i.6}} 學分</div>
+							(採計在 "{{k}}" 這組課程裡)
+						</div>
+						{% endfor %}
+					{% endfor %}
+				{% endif %}
 				{% if result.field_required.passed %}
 					已全數通過 (以 "{{result.field_required.passed_category}}" 這組課程採計)
 				{% else %}
@@ -379,7 +407,7 @@
 		</div>
 	</section>
 	<footer>
-		Copyright © 2021 All rights reserved.<br>
+		Copyright © 2021-2022 All rights reserved.<br>
 		國立陽明交通大學 資訊工程專題 by<br>
 		資工系 0716208 許永平<br>
 		指導教授：陳穎平 教授
