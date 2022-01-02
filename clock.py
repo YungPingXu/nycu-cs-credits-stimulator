@@ -1,12 +1,12 @@
 from apscheduler.schedulers.blocking import BlockingScheduler
-import urllib
+import requests
 
 sched = BlockingScheduler()
 
-@sched.scheduled_job("cron", minute="*/2")
-def scheduled_job():
+@sched.scheduled_job("interval", minutes=2)
+def timed_job():
     url = "https://nycu-cs-credits-stimulator.herokuapp.com/"
-    urllib.request.urlopen(url)
+    requests.get(url)
     print("Send request to https://nycu-cs-credits-stimulator.herokuapp.com/")
 
 sched.start()
