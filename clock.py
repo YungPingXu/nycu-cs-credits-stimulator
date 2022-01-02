@@ -3,10 +3,10 @@ import requests
 
 sched = BlockingScheduler()
 
-@sched.scheduled_job("interval", minutes=2)
+@sched.scheduled_job("interval", minutes=20)
 def timed_job():
     url = "https://nycu-cs-credits-stimulator.herokuapp.com/"
     requests.get(url)
-    print("Send request to https://nycu-cs-credits-stimulator.herokuapp.com/")
+    print("Send request to", url)
 
 sched.start()
