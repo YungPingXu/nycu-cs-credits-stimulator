@@ -68,6 +68,11 @@
 			margin-top: 130px;
 		}
 	</style>
+	<script>
+		function notice() {
+			alert("本系統之試算結果僅供參考，請以學校規定與校方之解釋為準，本網站之作者概不負責！");
+		}
+	</script>
 </head>
 <body>
 	<header>
@@ -89,12 +94,12 @@
 					<option value="D">資工系D班 (107學年度入學 資電組)</option>
 				</select>
 				<textarea name="content" placeholder="將歷年紀錄貼進來"></textarea>
-				<input type="submit" id="submit" value="開始解析"> 
+				<input type="submit" id="submit" value="開始解析" onclick="notice()"> 
 			</form>
 		</div>
 	</section>
 	<footer>
-		Copyright © 2021 All rights reserved.<br>
+		Copyright © 2021-2022 All rights reserved.<br>
 		國立陽明交通大學 資訊工程專題 by<br>
 		資工系 0716208 許永平<br>
 		指導教授：陳穎平 教授
