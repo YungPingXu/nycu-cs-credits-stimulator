@@ -1,3 +1,5 @@
+course_type_col_num = 10 # 向度
+
 """
 required_list format:
 required_list = {
@@ -159,7 +161,7 @@ def special_required(course, required_credits, required_semesters, required_list
     for i in range(1, required_list[0][2] + 1):
         passed = False
         for j in course:
-            if required_list[0][0] in j[4] and required_list[0][3] in j[5] and required_list[0][4] in j[12] and i == int(j[1][3]):
+            if required_list[0][0] in j[4] and required_list[0][3] in j[5] and required_list[0][4] in j[course_type_col_num] and i == int(j[1][3]):
                 result["result"]["basic"]["finished"].append(j)
                 result["result"]["basic"]["finished_credits"] += int(float(j[6]))
                 result["result"]["basic"]["finished_semesters"] += 1
@@ -250,7 +252,7 @@ def general_required(course, required_credits, required_list, fset):
     for k, v in required_list.items():
         cnt = 0
         for i in course:
-            if k in i[12]:
+            if k in i[course_type_col_num]:
                 credits = int(float(i[6]))
                 result["result"][k][0]["finished"].append(i)
                 result["result"][k][0]["finished_credits"] += credits
@@ -258,7 +260,7 @@ def general_required(course, required_credits, required_list, fset):
                 result["finished_credits"] += credits
                 if v[1]:
                     for course_type, credits in v[1].items():
-                        if course_type in i[12]:
+                        if course_type in i[course_type_col_num]:
                             result["result"][k][1][course_type]["finished"].append(i)
                             result["result"][k][1][course_type]["finished_semesters"] += 1
                 fset.append(i[0])
@@ -288,7 +290,7 @@ def calculate(inputdata, student_class):
     course = []
     for i in table:
         try:
-            if len(i) == 13 and i[7] != "" and i[8] != "" and i[10] != "" and (i[7] == "通過" or float(i[7]) >= 60.0):
+            if len(i) == 11 and i[7] != "" and i[8] != "" and (i[7] == "通過" or i[7] in ("A+", "A", "A-", "B+", "B", "B-", "C+", "C", "C-")):
                 credits = int(float(i[6]))
                 i[6] = credits
                 course.append(i)

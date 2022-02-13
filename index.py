@@ -1,13 +1,13 @@
 from flask import Flask, render_template, request, redirect, url_for
 import stimulate
 
-app = Flask(__name__) # 初始化 Flask 類別成為 instance
+app = Flask(__name__)
 
-@app.route('/', methods=['GET']) # 路由和處理函式配對
+@app.route('/', methods=['GET'])
 def index():
 	return render_template('index.html')
 
-@app.route('/stimulate', methods=['POST','GET']) # 路由和處理函式配對
+@app.route('/stimulate', methods=['POST','GET'])
 def calculate():
 	print(request.method)
 	if request.method == "POST":
@@ -21,6 +21,6 @@ def calculate():
 		return render_template('result.html', result=result)
 	return redirect(url_for("index"))
 
-if __name__ == '__main__': # 判斷自己執行非被當做引入的模組，因為 __name__ 這變數若被當做模組引入使用就不會是 __main__
+if __name__ == '__main__':
 	app.debug = True
 	app.run()
